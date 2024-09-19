@@ -1,343 +1,149 @@
--- TABLE
-CREATE TABLE [Categories]
-(      [CategoryID] INTEGER PRIMARY KEY AUTOINCREMENT,
-       [CategoryName] TEXT,
-       [Description] TEXT,
-       [Picture] BLOB
-);
-CREATE TABLE [CustomerCustomerDemo](
-   [CustomerID]TEXT NOT NULL,
-   [CustomerTypeID]TEXT NOT NULL,
-   PRIMARY KEY ("CustomerID","CustomerTypeID"),
-   FOREIGN KEY ([CustomerID]) REFERENCES [Customers] ([CustomerID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION,
-	FOREIGN KEY ([CustomerTypeID]) REFERENCES [CustomerDemographics] ([CustomerTypeID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION
-);
-CREATE TABLE [CustomerDemographics](
-   [CustomerTypeID]TEXT NOT NULL,
-   [CustomerDesc]TEXT,
-    PRIMARY KEY ("CustomerTypeID")
-);
-CREATE TABLE [Customers]
-(      [CustomerID] TEXT,
-       [CompanyName] TEXT,
-       [ContactName] TEXT,
-       [ContactTitle] TEXT,
-       [Address] TEXT,
-       [City] TEXT,
-       [Region] TEXT,
-       [PostalCode] TEXT,
-       [Country] TEXT,
-       [Phone] TEXT,
-       [Fax] TEXT,
-       PRIMARY KEY (`CustomerID`)
-);
-CREATE TABLE [Employees]
-(      [EmployeeID] INTEGER PRIMARY KEY AUTOINCREMENT,
-       [LastName] TEXT,
-       [FirstName] TEXT,
-       [Title] TEXT,
-       [TitleOfCourtesy] TEXT,
-       [BirthDate] DATE,
-       [HireDate] DATE,
-       [Address] TEXT,
-       [City] TEXT,
-       [Region] TEXT,
-       [PostalCode] TEXT,
-       [Country] TEXT,
-       [HomePhone] TEXT,
-       [Extension] TEXT,
-       [Photo] BLOB,
-       [Notes] TEXT,
-       [ReportsTo] INTEGER,
-       [PhotoPath] TEXT,
-	   FOREIGN KEY ([ReportsTo]) REFERENCES [Employees] ([EmployeeID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION
-);
-CREATE TABLE [EmployeeTerritories](
-   [EmployeeID]INTEGER NOT NULL,
-   [TerritoryID]TEXT NOT NULL,
-    PRIMARY KEY ("EmployeeID","TerritoryID"),
-	FOREIGN KEY ([EmployeeID]) REFERENCES [Employees] ([EmployeeID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION,
-	FOREIGN KEY ([TerritoryID]) REFERENCES [Territories] ([TerritoryID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION
-);
-CREATE TABLE [Order Details](
-   [OrderID]INTEGER NOT NULL,
-   [ProductID]INTEGER NOT NULL,
-   [UnitPrice]NUMERIC NOT NULL DEFAULT 0,
-   [Quantity]INTEGER NOT NULL DEFAULT 1,
-   [Discount]REAL NOT NULL DEFAULT 0,
-    PRIMARY KEY ("OrderID","ProductID"),
-    CHECK ([Discount]>=(0) AND [Discount]<=(1)),
-    CHECK ([Quantity]>(0)),
-    CHECK ([UnitPrice]>=(0)),
-	FOREIGN KEY ([OrderID]) REFERENCES [Orders] ([OrderID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION,
-	FOREIGN KEY ([ProductID]) REFERENCES [Products] ([ProductID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION
-);
-CREATE TABLE [Orders](
-   [OrderID]INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-   [CustomerID]TEXT,
-   [EmployeeID]INTEGER,
-   [OrderDate]DATETIME,
-   [RequiredDate]DATETIME,
-   [ShippedDate]DATETIME,
-   [ShipVia]INTEGER,
-   [Freight]NUMERIC DEFAULT 0,
-   [ShipName]TEXT,
-   [ShipAddress]TEXT,
-   [ShipCity]TEXT,
-   [ShipRegion]TEXT,
-   [ShipPostalCode]TEXT,
-   [ShipCountry]TEXT,
-   FOREIGN KEY ([EmployeeID]) REFERENCES [Employees] ([EmployeeID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION,
-	FOREIGN KEY ([CustomerID]) REFERENCES [Customers] ([CustomerID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION,
-	FOREIGN KEY ([ShipVia]) REFERENCES [Shippers] ([ShipperID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION
-);
-CREATE TABLE [Products](
-   [ProductID]INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-   [ProductName]TEXT NOT NULL,
-   [SupplierID]INTEGER,
-   [CategoryID]INTEGER,
-   [QuantityPerUnit]TEXT,
-   [UnitPrice]NUMERIC DEFAULT 0,
-   [UnitsInStock]INTEGER DEFAULT 0,
-   [UnitsOnOrder]INTEGER DEFAULT 0,
-   [ReorderLevel]INTEGER DEFAULT 0,
-   [Discontinued]TEXT NOT NULL DEFAULT '0',
-    CHECK ([UnitPrice]>=(0)),
-    CHECK ([ReorderLevel]>=(0)),
-    CHECK ([UnitsInStock]>=(0)),
-    CHECK ([UnitsOnOrder]>=(0)),
-	FOREIGN KEY ([CategoryID]) REFERENCES [Categories] ([CategoryID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION,
-	FOREIGN KEY ([SupplierID]) REFERENCES [Suppliers] ([SupplierID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION
-);
-CREATE TABLE [Regions](
-   [RegionID]INTEGER NOT NULL PRIMARY KEY,
-   [RegionDescription]TEXT NOT NULL
-);
-CREATE TABLE [Shippers](
-   [ShipperID]INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-   [CompanyName]TEXT NOT NULL,
-   [Phone]TEXT
-);
-CREATE TABLE [Suppliers](
-   [SupplierID]INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-   [CompanyName]TEXT NOT NULL,
-   [ContactName]TEXT,
-   [ContactTitle]TEXT,
-   [Address]TEXT,
-   [City]TEXT,
-   [Region]TEXT,
-   [PostalCode]TEXT,
-   [Country]TEXT,
-   [Phone]TEXT,
-   [Fax]TEXT,
-   [HomePage]TEXT
-);
-CREATE TABLE [Territories](
-   [TerritoryID]TEXT NOT NULL,
-   [TerritoryDescription]TEXT NOT NULL,
-   [RegionID]INTEGER NOT NULL,
-    PRIMARY KEY ("TerritoryID"),
-	FOREIGN KEY ([RegionID]) REFERENCES [Regions] ([RegionID]) 
-		ON DELETE NO ACTION ON UPDATE NO ACTION
-);
- 
--- INDEX
- 
--- TRIGGER
- 
--- VIEW
-CREATE VIEW [Alphabetical list of products] 
-AS
-SELECT Products.*, 
-       Categories.CategoryName
+--Q1) Verilen Customers ve Orders tablolarını kullanarak, Customers tablosundaki müşterileri ve onların verdikleri siparişleri birleştirerek listeleyin.
+--Müşteri adı, sipariş ID'si ve sipariş tarihini gösterin. 
+
+SELECT Customers.CustomerID, Orders.OrderID, Orders.OrderDate FROM Customers
+LEFT JOIN Orders ON Orders.CustomerID = Customers.CustomerID order BY Customers.CustomerID
+
+--Q2) Verilen Suppliers ve Products tablolarını kullanarak tüm tedarikçileri ve onların sağladıkları ürünleri listeleyin. 
+--Eğer bir tedarikçinin ürünü yoksa, NULL olarak gösterilsin.
+SELECT Suppliers.SupplierID, Products.ProductID FROM Suppliers
+LEFT JOIN Products on Products.SupplierID=Suppliers.SupplierID 
+
+--Q3) Verilen Employees ve Orders tablolarını kullanarak tüm siparişleri ve bu siparişleri işleyen çalışanları listeleyin. 
+--Eğer bir sipariş bir çalışan tarafından işlenmediyse, çalışan bilgileri NULL olarak gösterilsin.
+SELECT Orders.OrderID, Employees.EmployeeID, Employees.FirstName||' '|| Employees.LastName AS FullName FROM Orders
+LEFT JOIN Employees ON Orders.EmployeeID= Employees.EmployeeID
+
+--Q4)Verilen Customers ve Orders tablolarını kullanarak tüm müşterileri ve tüm siparişleri listeleyin. 
+--Sipariş vermeyen müşteriler ve müşterisi olmayan siparişler için NULL döndürün.
+SELECT Customers.CustomerID, Orders.OrderID FROM Customers join Orders on Customers.CustomerID = Orders.CustomerID
+
+--Q5)Verilen Products ve Categories tablolarını kullanarak tüm ürünler ve tüm kategoriler için olası tüm kombinasyonları listeleyin. 
+--Sonuç kümesindeki her satır bir ürün ve bir kategori kombinasyonunu göstermelidir.
+SELECT Products.ProductID, Products.ProductName, Categories.CategoryName FROM Products
+CROSS JOIN Categories 
+
+--Q6)Verilen Orders, Customers, Employees tablolarını kullanarak bu tabloları birleştirin ve 2016 yılında verilen siparişleri listeleyin.
+--Müşteri adı, sipariş ID'si, sipariş tarihi ve ilgili çalışan adı gösterilsin.
+SELECT Customers.CompanyName, Orders.OrderID, Orders.OrderDate, Employees.FirstName||' '|| Employees.LastName AS EmployeeName
+FROM Orders
+JOIN Customers ON Orders.CustomerID = Customers.CustomerID
+JOIN Employees ON Orders.EmployeeID = Employees.EmployeeID
+WHERE Orders.OrderDate LIKE '2016%'
+
+--Q7)Verilen Orders ve Customers tablolarını kullanarak müşterileri, verdikleri sipariş sayısına göre gruplandırın. 
+--Sadece 5’ten fazla sipariş veren müşterileri listeleyin.
+SELECT Customers.CustomerID,  COUNT(Orders.OrderID) AS OrderCount FROM Customers 
+JOIN Orders ON Customers.CustomerID=Orders.CustomerID GROUP BY Customers.customerid HAVING COUNT(Orders.OrderID) > 5
+
+--Q8)Verilen OrderDetails ve Products tablolarını kullanarak her ürün için kaç adet satıldığını ve toplam satış miktarını listeleyin. 
+--Ürün adı, satılan toplam adet ve toplam kazancı (Quantity * UnitPrice) gösterin.
+SELECT Products.ProductID, SUM('Order Details'.Quantity) AS TotalQuantitySold, 
+SUM('Order Details'.Quantity * 'Order Details'.UnitPrice) AS TotalRevenue
+FROM 'Order Details' JOIN Products ON 'Order Details'.ProductID = Products.ProductID
+GROUP BY Products.ProductName;
+
+--Q9)Verilen Customers ve Orders tablolarını kullanarak, müşteri adı "B" harfiyle başlayan müşterilerin siparişlerini listeleyin. 
+SELECT Customers.CompanyName, Orders.OrderID FROM Orders JOIN Customers ON Customers.CustomerID=Orders.CustomerID
+WHERE Customers.CompanyName LIKE 'B%'
+
+--Q10)Verilen Products ve Categories tablolarını kullanarak tüm kategorileri listeleyin ve ürünleri olmayan kategorileri bulun.
+--Ürün adı NULL olan satırları gösterin.
+SELECT Products.ProductName, Categories.CategoryName
 FROM Categories 
-   INNER JOIN Products ON Categories.CategoryID = Products.CategoryID
-WHERE (((Products.Discontinued)=0));
-CREATE VIEW [Category Sales for 1997] AS
-SELECT     [Product Sales for 1997].CategoryName, 
-       Sum([Product Sales for 1997].ProductSales) AS CategorySales
-FROM [Product Sales for 1997]
-GROUP BY [Product Sales for 1997].CategoryName;
-CREATE VIEW [Current Product List] 
-AS
-SELECT ProductID,
-       ProductName 
-FROM Products 
-WHERE Discontinued=0;
-CREATE VIEW [Customer and Suppliers by City] 
-AS
-SELECT City, 
-       CompanyName, 
-       ContactName, 
-       'Customers' AS Relationship 
-FROM Customers
-UNION 
-SELECT City, 
-       CompanyName, 
-       ContactName, 
-       'Suppliers'
-FROM Suppliers 
-ORDER BY City, CompanyName;
-CREATE VIEW [Invoices] 
-AS
-SELECT Orders.ShipName,
-       Orders.ShipAddress,
-       Orders.ShipCity,
-       Orders.ShipRegion, 
-       Orders.ShipPostalCode,
-       Orders.ShipCountry,
-       Orders.CustomerID,
-       Customers.CompanyName AS CustomerName, 
-       Customers.Address,
-       Customers.City,
-       Customers.Region,
-       Customers.PostalCode,
-       Customers.Country,
-       (Employees.FirstName + ' ' + Employees.LastName) AS Salesperson, 
-       Orders.OrderID,
-       Orders.OrderDate,
-       Orders.RequiredDate,
-       Orders.ShippedDate, 
-       Shippers.CompanyName As ShipperName,
-       [Order Details].ProductID,
-       Products.ProductName, 
-       [Order Details].UnitPrice,
-       [Order Details].Quantity,
-       [Order Details].Discount, 
-       ((([Order Details].UnitPrice*Quantity*(1-Discount))/100)*100) AS ExtendedPrice,
-       Orders.Freight 
-FROM Customers 
-  JOIN Orders ON Customers.CustomerID = Orders.CustomerID  
-    JOIN Employees ON Employees.EmployeeID = Orders.EmployeeID    
-     JOIN [Order Details] ON Orders.OrderID = [Order Details].OrderID     
-      JOIN Products ON Products.ProductID = [Order Details].ProductID      
-       JOIN Shippers ON Shippers.ShipperID = Orders.ShipVia;
-CREATE VIEW [Order Details Extended] AS
-SELECT [Order Details].OrderID, 
-       [Order Details].ProductID, 
-       Products.ProductName, 
-	   [Order Details].UnitPrice, 
-       [Order Details].Quantity, 
-       [Order Details].Discount, 
-      ([Order Details].UnitPrice*Quantity*(1-Discount)/100)*100 AS ExtendedPrice
-FROM Products 
-     JOIN [Order Details] ON Products.ProductID = [Order Details].ProductID;
-CREATE VIEW [Order Subtotals] AS
-SELECT [Order Details].OrderID, 
-Sum(([Order Details].UnitPrice*Quantity*(1-Discount)/100)*100) AS Subtotal
-FROM [Order Details]
-GROUP BY [Order Details].OrderID;
-CREATE VIEW [Orders Qry] AS
-SELECT Orders.OrderID,
-       Orders.CustomerID,
-       Orders.EmployeeID, 
-       Orders.OrderDate, 
-       Orders.RequiredDate,
-       Orders.ShippedDate, 
-       Orders.ShipVia, 
-       Orders.Freight,
-       Orders.ShipName, 
-       Orders.ShipAddress, 
-       Orders.ShipCity,
-       Orders.ShipRegion,
-       Orders.ShipPostalCode,
-       Orders.ShipCountry,
-       Customers.CompanyName,
-       Customers.Address,
-       Customers.City,
-       Customers.Region,
-       Customers.PostalCode, 
-       Customers.Country
-FROM Customers 
-     JOIN Orders ON Customers.CustomerID = Orders.CustomerID;
-CREATE VIEW [Product Sales for 1997] AS
-SELECT Categories.CategoryName, 
-       Products.ProductName, 
-       Sum(([Order Details].UnitPrice*Quantity*(1-Discount)/100)*100) AS ProductSales
-FROM Categories
- JOIN    Products On Categories.CategoryID = Products.CategoryID
-    JOIN  [Order Details] on Products.ProductID = [Order Details].ProductID     
-     JOIN  [Orders] on Orders.OrderID = [Order Details].OrderID 
-WHERE Orders.ShippedDate Between DATETIME('1997-01-01') And DATETIME('1997-12-31')
-GROUP BY Categories.CategoryName, Products.ProductName;
-CREATE VIEW [ProductDetails_V] as
-select 
-p.*, 
-c.CategoryName, c.Description as [CategoryDescription],
-s.CompanyName as [SupplierName], s.Region as [SupplierRegion]
-from [Products] p
-join [Categories] c on p.CategoryId = c.CategoryId
-join [Suppliers] s on s.SupplierId = p.SupplierId;
-CREATE VIEW [Products Above Average Price] AS
-SELECT Products.ProductName, 
-       Products.UnitPrice
+LEFT JOIN Products ON Categories.CategoryID = Products.CategoryID
+WHERE Products.ProductName IS NULL;
+
+--Q11)Verilen Employees tablosunu kullanarak her çalışanın yöneticisiyle birlikte bir liste oluşturun.
+SELECT e1.FirstName|| ' ' || e1.LastName AS "Employee",  e2.FirstName|| ' ' || e2.LastName AS "Manager"
+from Employees e1 LEFT JOIN Employees e2 ON e1.ReportsTo=e2.EmployeeID
+order BY e1.LastName
+
+--Q12)Verilen Products tablosunu kullanarak her kategorideki en pahalı ürünleri 
+--ve bu ürünlerin farklı fiyatlara sahip olup olmadığını sorgulayın.
+SELECT CategoryID, 
+       COUNT(DISTINCT UnitPrice) AS DistinctPriceCount
 FROM Products
-WHERE Products.UnitPrice>(SELECT AVG(UnitPrice) From Products);
-CREATE VIEW [Products by Category] AS
-SELECT Categories.CategoryName, 
-       Products.ProductName, 
-       Products.QuantityPerUnit, 
-       Products.UnitsInStock, 
-       Products.Discontinued
-FROM Categories 
-     INNER JOIN Products ON Categories.CategoryID = Products.CategoryID
-WHERE Products.Discontinued <> 1;
-CREATE VIEW [Quarterly Orders] AS
-SELECT DISTINCT Customers.CustomerID, 
-                Customers.CompanyName, 
-                Customers.City, 
-                Customers.Country
-FROM Customers 
-     JOIN Orders ON Customers.CustomerID = Orders.CustomerID
-WHERE Orders.OrderDate BETWEEN DATETIME('1997-01-01') And DATETIME('1997-12-31');
-CREATE VIEW [Sales by Category] AS
-SELECT Categories.CategoryID, 
-       Categories.CategoryName, 
-         Products.ProductName, 
-	Sum([Order Details Extended].ExtendedPrice) AS ProductSales
-FROM  Categories 
-    JOIN Products 
-      ON Categories.CategoryID = Products.CategoryID
-       JOIN [Order Details Extended] 
-         ON Products.ProductID = [Order Details Extended].ProductID                
-           JOIN Orders 
-             ON Orders.OrderID = [Order Details Extended].OrderID 
-WHERE Orders.OrderDate BETWEEN DATETIME('1997-01-01') And DATETIME('1997-12-31')
-GROUP BY Categories.CategoryID, Categories.CategoryName, Products.ProductName;
-CREATE VIEW [Sales Totals by Amount] AS
-SELECT [Order Subtotals].Subtotal AS SaleAmount, 
-                  Orders.OrderID, 
-               Customers.CompanyName, 
-                  Orders.ShippedDate
-FROM Customers 
- JOIN Orders ON Customers.CustomerID = Orders.CustomerID
-    JOIN [Order Subtotals] ON Orders.OrderID = [Order Subtotals].OrderID 
-WHERE ([Order Subtotals].Subtotal >2500) 
-AND (Orders.ShippedDate BETWEEN DATETIME('1997-01-01') And DATETIME('1997-12-31'));
-CREATE VIEW [Summary of Sales by Quarter] AS
-SELECT Orders.ShippedDate, 
-       Orders.OrderID, 
-       [Order Subtotals].Subtotal
-FROM Orders 
-     INNER JOIN [Order Subtotals] ON Orders.OrderID = [Order Subtotals].OrderID
-WHERE Orders.ShippedDate IS NOT NULL;
-CREATE VIEW [Summary of Sales by Year] AS
-SELECT      Orders.ShippedDate, 
-            Orders.OrderID, 
- [Order Subtotals].Subtotal
-FROM Orders 
-     INNER JOIN [Order Subtotals] ON Orders.OrderID = [Order Subtotals].OrderID
-WHERE Orders.ShippedDate IS NOT NULL;
- 
+WHERE UnitPrice IN (
+    SELECT MAX(UnitPrice)
+    FROM Products
+    GROUP BY CategoryID
+)
+GROUP BY CategoryID;
+
+--Q13)Verilen Orders ve OrderDetails tablolarını kullanarak bu tabloları birleştirin 
+-- ve her siparişin detaylarını sipariş ID'sine göre artan sırada listeleyin
+SELECT o.OrderID, o.OrderDate, od.ProductID, od.UnitPrice, od.Quantity, od.Discount
+FROM Orders o
+JOIN 'Order Details' od ON o.OrderID = od.OrderID
+ORDER BY o.OrderID ASC;
+
+--Q14)Verilen Employees ve Orders tablolarını kullanarak her çalışanın kaç tane sipariş işlediğini listeleyin. 
+-- Sipariş işlemeyen çalışanlar da gösterilsin.
+SELECT e.EmployeeID, e.FirstName|| ' ' || e.LastName AS "EmployeeName", COUNT(o.OrderID) AS OrderCount
+FROM Employees e
+LEFT JOIN Orders o ON e.EmployeeID = o.EmployeeID
+GROUP BY e.EmployeeID
+
+--Q15)Verilen Products tablosunu kullanarak bir kategorideki ürünleri kendi arasında fiyatlarına 
+--göre karşılaştırın ve fiyatı düşük olan ürünleri listeleyin.
+SELECT p1.CategoryID, 
+       p1.ProductID, 
+       p1.ProductName, 
+       p1.UnitPrice
+FROM Products p1
+LEFT JOIN Products p2 
+ON p1.CategoryID = p2.CategoryID 
+AND p1.UnitPrice > p2.UnitPrice
+WHERE p2.ProductID IS NULL order by p1.categoryid
+
+--Q16)Verilen Products ve Suppliers tablolarını kullanarak tedarikçiden alınan en pahalı ürünleri listeleyin.
+SELECT s.SupplierID, 
+       s.CompanyName, 
+       p.ProductID, 
+       p.ProductName, 
+       p.UnitPrice
+FROM Suppliers s JOIN Products p ON s.SupplierID = p.SupplierID
+WHERE p.UnitPrice = (
+    SELECT MAX(p2.UnitPrice)
+    FROM Products p2
+    WHERE p2.SupplierID = s.SupplierID
+)
+
+--Q17)Verilen Employees ve Orders tablolarını kullanarak her çalışanın işlediği en son siparişi bulun. 
+SELECT e.EmployeeID, 
+       e.FirstName|| ' ' || e.LastName AS "EmployeeName", 
+       o.OrderID, 
+       o.OrderDate
+FROM Employees e
+JOIN Orders o ON e.EmployeeID = o.EmployeeID
+WHERE o.OrderDate = (
+    SELECT MAX(o2.OrderDate)
+    FROM Orders o2
+    WHERE o2.EmployeeID = e.EmployeeID
+)
+
+--Q18)Verilen Products tablosunu kullanarak ürünleri fiyatlarına göre gruplandırın ve
+--fiyatı 20 birimden fazla olan ürünlerin sayısını listeleyin.
+SELECT COUNT(*) AS ProductCount
+FROM Products
+WHERE UnitPrice > 20
+
+--Q19)Verilen Orders ve Customers tablolarını kullanarak
+--2012 ile 2023 yılları arasında verilen siparişleri müşteri adıyla birlikte listeleyin.
+SELECT o.OrderID, 
+       o.OrderDate, 
+       c.CustomerID, 
+       c.CompanyName
+FROM Orders o
+JOIN Customers c ON o.CustomerID = c.CustomerID
+WHERE o.OrderDate BETWEEN '2012-01-01' AND '2023-12-31'
+
+--Q20)Verilen Customers ve Orders tablolarını kullanarak hiç sipariş vermeyen müşterileri listeleyin. 
+SELECT c.CustomerID, 
+       c.CompanyName
+FROM Customers c
+LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
+WHERE o.OrderID IS NULL
+
+
